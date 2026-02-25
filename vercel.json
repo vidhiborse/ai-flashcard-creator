@@ -2,8 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "web_app.py",
+      "src": "wsgi.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -13,7 +17,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "web_app.py"
+      "dest": "wsgi.py"
     }
   ]
 }
