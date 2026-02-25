@@ -1,0 +1,17 @@
+.env
+*.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+.vscode/
+.idea/
+*.log
+.DS_Store
+static/profile_photos/*
+!static/profile_photos/.gitkeep
+uploads/

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <!-- Preload critical pages -->
+<link rel="prefetch" href="/dashboard">
+<link rel="prefetch" href="/study">
+<link rel="prefetch" href="/chat">
+<link rel="prefetch" href="/profile">
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+    <style>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 35px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-icon {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .strength-weak { color: #f44; }
+        .strength-medium { color: #fa0; }
+        .strength-strong { color: #4f4; }
+
+        .requirements {
+            background: #f8f9ff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .requirements h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .requirements ul {
+            margin-left: 18px;
+            color: #666;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <div class="logo-icon">🎓</div>
+            <h1>Welcome Back!</h1>
+            <p>Login to continue your learning journey</p>
+        </div>
+
+        <div class="error-msg" id="error"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username"
+                    required autocomplete="username"
+                    placeholder="Enter your username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                    required autocomplete="current-password"
+                    placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="btn-primary" id="loginBtn">
+                🔐 Login
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Logging in...</p>
+        </div>
+
+        <div class="divider">─────  OR  ─────</div>
+
+        <div style="text-align: center; margin-top: 10px;">
+    <a href="/forgot-password" style="color: #667eea; text-decoration: none; font-size: 14px;">
+        Forgot Password?
+    </a>
+</div>
+
+
+        <div class="signup-link">
+            Don't have an account? <a href="/signup">Sign Up</a>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('loading').classList.add('show');
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    showError(data.error || 'Login failed');
+                    document.getElementById('loginForm').style.display = 'block';
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                document.getElementById('loginForm').style.display = 'block';
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>

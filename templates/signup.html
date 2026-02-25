@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <head>
+    <!-- Preload critical pages -->
+<link rel="prefetch" href="/dashboard">
+<link rel="prefetch" href="/study">
+<link rel="prefetch" href="/chat">
+<link rel="prefetch" href="/profile">
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+
+    
+    <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 35px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-icon {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .strength-weak { color: #f44; }
+        .strength-medium { color: #fa0; }
+        .strength-strong { color: #4f4; }
+
+        .requirements {
+            background: #f8f9ff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .requirements h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .requirements ul {
+            margin-left: 18px;
+            color: #666;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <div class="logo-icon">🚀</div>
+            <h1>Create Account</h1>
+            <p>Start your learning journey today!</p>
+        </div>
+
+        <div class="error-msg" id="error"></div>
+        <div class="success-msg" id="success"></div>
+
+        <form id="signupForm" onsubmit="handleSignup(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username"
+                    required minlength="3"
+                    autocomplete="username"
+                    placeholder="At least 3 characters">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email"
+                    required autocomplete="email"
+                    placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                    required minlength="6"
+                    autocomplete="new-password"
+                    placeholder="At least 6 characters"
+                    oninput="checkPasswordStrength()">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword"
+                    name="confirmPassword" required
+                    autocomplete="new-password"
+                    placeholder="Repeat your password">
+            </div>
+
+            <button type="submit" class="btn-primary" id="signupBtn">
+                ✨ Create Account
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">
+                Creating your account...
+            </p>
+        </div>
+
+        <div class="divider">─────  OR  ─────</div>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Login</a>
+        </div>
+
+        <div class="requirements">
+            <h4>Password Requirements:</h4>
+            <ul>
+                <li>At least 6 characters</li>
+                <li>Mix of letters and numbers recommended</li>
+                <li>Avoid common passwords</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthDiv = document.getElementById('passwordStrength');
+
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            if (strength <= 2) {
+                strengthDiv.textContent = '💡 Weak password';
+                strengthDiv.className = 'password-strength strength-weak';
+            } else if (strength <= 3) {
+                strengthDiv.textContent = '👍 Medium password';
+                strengthDiv.className = 'password-strength strength-medium';
+            } else {
+                strengthDiv.textContent = '🔒 Strong password';
+                strengthDiv.className = 'password-strength strength-strong';
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('success').classList.remove('show');
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match!');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters!');
+                return;
+            }
+
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('loading').classList.add('show');
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('Account created! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showError(data.error || 'Signup failed');
+                    document.getElementById('signupForm').style.display = 'block';
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                document.getElementById('signupForm').style.display = 'block';
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            const div = document.getElementById('error');
+            div.textContent = message;
+            div.classList.add('show');
+        }
+
+        function showSuccess(message) {
+            const div = document.getElementById('success');
+            div.textContent = message;
+            div.classList.add('show');
+        }
+    </script>
+</body>
+</html>

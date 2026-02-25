@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Preload critical pages -->
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/study">
+    <link rel="prefetch" href="/chat">
+    <link rel="prefetch" href="/profile">
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+    
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+    .analytics-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 32px 24px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .analytics-header h1 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        margin-bottom: 8px;
+        color: white;
+    }
+
+    .analytics-header p {
+        opacity: 0.95;
+        font-size: clamp(0.875rem, 2vw, 1rem);
+    }
+
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) {
+        .stats-overview {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .overview-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    .overview-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .overview-value {
+        font-size: clamp(2rem, 5vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+
+    .overview-label {
+        color: var(--text-secondary);
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    @media (min-width: 968px) {
+        .charts-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .chart-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .chart-card h2 {
+        font-size: clamp(1rem, 3vw, 1.25rem);
+        margin-bottom: 16px;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .chart-card.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .chart-card canvas {
+        max-width: 100%;
+        height: auto !important;
+        max-height: 300px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-card canvas {
+            max-height: 250px;
+        }
+    }
+
+    .heatmap-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .heatmap-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 12px);
+        gap: 2px;
+        min-width: fit-content;
+        padding: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .heatmap-grid {
+            grid-template-columns: repeat(auto-fill, 10px);
+            gap: 2px;
+        }
+    }
+
+    .heatmap-cell {
+        width: 12px;
+        height: 12px;
+        background: #ebedf0;
+        border-radius: 2px;
+        transition: all 0.2s;
+    }
+
+    @media (max-width: 768px) {
+        .heatmap-cell {
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    .heatmap-cell:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    }
+
+    .heatmap-cell[data-level="1"] { background: #c6e48b; }
+    .heatmap-cell[data-level="2"] { background: #7bc96f; }
+    .heatmap-cell[data-level="3"] { background: #239a3b; }
+    .heatmap-cell[data-level="4"] { background: #196127; }
+
+    .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        font-size: clamp(0.65rem, 2vw, 0.75rem);
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .legend-box {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .performance-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .performance-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        background: var(--surface);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary);
+        gap: 8px;
+    }
+
+    .performance-item.worst {
+        border-left-color: var(--danger);
+    }
+
+    .performance-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .performance-score {
+        font-weight: 700;
+        font-size: clamp(1rem, 3vw, 1.125rem);
+        color: var(--primary);
+        flex-shrink: 0;
+    }
+
+    .performance-item.worst .performance-score {
+        color: var(--danger);
+    }
+
+    .hour-heatmap {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 6px;
+        margin-top: 12px;
+    }
+
+    @media (max-width: 968px) {
+        .hour-heatmap {
+            grid-template-columns: repeat(8, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .hour-heatmap {
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .hour-heatmap {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .hour-cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface);
+        border-radius: 6px;
+        font-size: clamp(0.65rem, 2vw, 0.75rem);
+        font-weight: 600;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+        padding: 4px;
+    }
+
+    .hour-cell:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-md);
+    }
+
+    .hour-cell.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .hour-label {
+        font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+        margin-bottom: 2px;
+    }
+
+    .hour-count {
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+        font-weight: 700;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+        font-size: clamp(3rem, 8vw, 4rem);
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state-text {
+        font-size: clamp(0.875rem, 2.5vw, 1rem);
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-card {
+            padding: 16px;
+        }
+        
+        .analytics-header {
+            padding: 24px 16px;
+        }
+    }
+</style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/dashboard" class="navbar-brand">AI Flashcard Creator</a>
+            <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-menu" id="navMenu">
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/study" class="nav-link">Study</a>
+                <a href="/chat" class="nav-link">AI Buddy</a>
+                <a href="/profile" class="nav-link">Profile</a>
+                <a href="/analytics" class="nav-link active">Analytics</a>
+                {% if current_user.id == 1 %}
+                <a href="/admin" class="nav-link">Admin</a>
+                {% endif %}
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="analytics-header">
+            <h1>Advanced Analytics</h1>
+            <p>Deep insights into your learning progress</p>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="stats-overview">
+            <div class="overview-card">
+                <div class="overview-value">{{ total_study_time }}</div>
+                <div class="overview-label">Total Minutes Studied</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-value">{{ total_sessions }}</div>
+                <div class="overview-label">Study Sessions</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-value">{{ avg_session_length }}</div>
+                <div class="overview-label">Avg Session (mins)</div>
+            </div>
+        </div>
+
+        {% if total_sessions > 0 %}
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Activity Heatmap -->
+            <div class="chart-card full-width">
+                <h2>Study Activity Heatmap (Last 90 Days)</h2>
+                <div class="heatmap-container">
+                    <div class="heatmap-grid" id="heatmapGrid"></div>
+                </div>
+                <div class="heatmap-legend">
+                    <span>Less</span>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #ebedf0;"></div>
+                        <span>0</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #c6e48b;"></div>
+                        <span>1-2</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #7bc96f;"></div>
+                        <span>3-4</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #239a3b;"></div>
+                        <span>5-6</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: #196127;"></div>
+                        <span>7+</span>
+                    </div>
+                    <span>More</span>
+                </div>
+            </div>
+
+            <!-- Time Per Day Chart -->
+            <div class="chart-card">
+                <h2>Study Time Per Day (Last 30 Days)</h2>
+                <canvas id="timeChart"></canvas>
+            </div>
+
+            <!-- Difficulty Performance Chart -->
+            <div class="chart-card">
+                <h2>Performance by Difficulty</h2>
+                <canvas id="difficultyChart"></canvas>
+            </div>
+
+            <!-- Best Performing Sets -->
+            <div class="chart-card">
+                <h2>Best Performing Topics</h2>
+                {% if best_sets|length > 0 %}
+                <div class="performance-list">
+                    {% for set in best_sets %}
+                    <div class="performance-item">
+                        <span class="performance-name">{{ set[0] }}</span>
+                        <span class="performance-score">{{ set[1]|round(1) }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                    No data yet
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Worst Performing Sets -->
+            <div class="chart-card">
+                <h2>Topics Needing Practice</h2>
+                {% if worst_sets|length > 0 %}
+                <div class="performance-list">
+                    {% for set in worst_sets %}
+                    <div class="performance-item worst">
+                        <span class="performance-name">{{ set[0] }}</span>
+                        <span class="performance-score">{{ set[1]|round(1) }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                    No data yet
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Study Time by Hour -->
+            <div class="chart-card full-width">
+                <h2>Most Productive Study Hours</h2>
+                <div class="hour-heatmap">
+                    {% for hour in range(24) %}
+                    <div class="hour-cell {% if hour_data[hour] > 0 %}active{% endif %}" 
+                         title="{{ hour }}:00 - {{ hour_data[hour] }} sessions">
+                        <div class="hour-label">{{ hour }}:00</div>
+                        <div class="hour-count">{{ hour_data[hour] }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="chart-card">
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <div class="empty-state-text">
+                    No analytics data yet. Start studying to see your progress!
+                </div>
+                <a href="/study" class="btn-primary" style="max-width: 300px; margin: 0 auto;">
+                    Start Studying
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('open');
+            document.getElementById('hamburger').classList.toggle('active');
+        }
+
+        // Generate Heatmap
+        const heatmapData = {{ heatmap_data | tojson }};
+        const heatmapGrid = document.getElementById('heatmapGrid');
+        
+        if (heatmapGrid) {
+            const today = new Date();
+            const ninetyDaysAgo = new Date(today);
+            ninetyDaysAgo.setDate(today.getDate() - 90);
+            
+            for (let d = new Date(ninetyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const count = heatmapData[dateStr] || 0;
+                
+                let level = 0;
+                if (count >= 7) level = 4;
+                else if (count >= 5) level = 3;
+                else if (count >= 3) level = 2;
+                else if (count >= 1) level = 1;
+                
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                cell.setAttribute('data-level', level);
+                cell.title = `${dateStr}: ${count} sessions`;
+                
+                heatmapGrid.appendChild(cell);
+            }
+        }
+    </script>
+
+    <!-- Chart.js for analytics -->
+    <script>
+        function loadCharts() {
+            if (typeof Chart === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                script.onload = initCharts;
+                document.head.appendChild(script);
+            } else {
+                initCharts();
+            }
+        }
+        
+        function initCharts() {
+            // Time Per Day Chart
+            const timeCtx = document.getElementById('timeChart');
+            if (timeCtx) {
+                new Chart(timeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ time_per_day.labels | tojson }},
+                        datasets: [{
+                            label: 'Minutes Studied',
+                            data: {{ time_per_day.data | tojson }},
+                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                            borderColor: '#667eea',
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: value => value + ' min'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Difficulty Performance Chart
+            const diffCtx = document.getElementById('difficultyChart');
+            if (diffCtx && {{ difficulty_data.labels | length }} > 0) {
+                new Chart(diffCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: {{ difficulty_data.labels | tojson }},
+                        datasets: [{
+                            label: 'Average Score',
+                            data: {{ difficulty_data.scores | tojson }},
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: context => {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        return `${label}: ${value}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        window.addEventListener('load', function() {
+            setTimeout(loadCharts, 100);
+        });
+    </script>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
+        <span id="darkModeIcon">🌙</span>
+    </button>
+
+    <script>
+        {% if current_user.dark_mode %}
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').textContent = '☀️';
+        {% endif %}
+
+        async function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('darkModeIcon');
+            body.classList.toggle('dark-mode');
+            icon.textContent = body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            
+            try {
+                await fetch('/toggle-dark-mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } catch (error) {
+                console.error('Failed to save dark mode preference');
+            }
+        }
+    </script>
+
+    <!-- Instant Loading Indicator -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.classList.contains('active')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    showPageLoader();
+                });
+            });
+            window.addEventListener('pageshow', function() {
+                hidePageLoader();
+            });
+        });
+        
+        function showPageLoader() {
+            let loader = document.getElementById('pageLoader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'pageLoader';
+                loader.className = 'page-loader';
+                loader.innerHTML = '<div class="page-loader-spinner"></div>';
+                document.body.appendChild(loader);
+            }
+            loader.classList.add('show');
+        }
+        
+        function hidePageLoader() {
+            const loader = document.getElementById('pageLoader');
+            if (loader) {
+                loader.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

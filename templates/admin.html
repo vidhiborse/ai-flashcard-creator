@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Preload critical pages -->
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/study">
+    <link rel="prefetch" href="/chat">
+    <link rel="prefetch" href="/profile">
+    <a href="/analytics" class="nav-link">Analytics</a>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+        .admin-header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-header h1 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: clamp(1.3em, 4vw, 1.8em);
+        }
+
+        .admin-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .table-container h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th:first-child { border-radius: 10px 0 0 0; }
+        th:last-child { border-radius: 0 10px 0 0; }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+            font-size: 13px;
+        }
+
+        tr:hover td {
+            background: #f8f9ff;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-green {
+            background: #e6fff5;
+            color: #00a854;
+        }
+
+        .badge-blue {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .badge-orange {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .badge-admin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .no-users-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/dashboard" class="navbar-brand">
+                🎓 AI Flashcard Creator
+            </a>
+            <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-menu" id="navMenu">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/study" class="nav-link">Study</a>
+    <a href="/chat" class="nav-link">AI Buddy</a>
+    <a href="/profile" class="nav-link">Profile</a>
+    <a href="/analytics" class="nav-link">Analytics</a>
+    {% if current_user.id == 1 %}
+    <a href="/admin" class="nav-link">Admin</a>
+    {% endif %}
+    <a href="/logout" class="logout-btn">Logout</a>
+</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-header">
+            <h1>Admin Panel</h1>
+            <p>Welcome {{ current_user.username }}!
+               Here's your website overview.</p>
+        </div>
+
+        <div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-value">{{ total_flashcards }}</div>
+        <div class="stat-label">Total Flashcards</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-value">{{ total_exams }}</div>
+        <div class="stat-label">Total Exams</div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-value">{{ total_page_views }}</div>
+        <div class="stat-label">Total Page Views</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-value">{{ unique_visitors }}</div>
+        <div class="stat-label">Unique Visitors</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-value">{{ today_views }}</div>
+        <div class="stat-label">Views Today</div>
+    </div>
+</div>
+
+<!-- Popular Pages -->
+<div class="card" style="margin-bottom: 24px;">
+    <h2 style="margin-bottom: 16px; color: #667eea;">Most Visited Pages</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #eee;">Page</th>
+                    <th style="text-align: right; padding: 12px; border-bottom: 2px solid #eee;">Views</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in popular_pages %}
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ page.page }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">
+                        {{ page.count }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Visitors -->
+<div class="card" style="margin-bottom: 24px;">
+    <h2 style="margin-bottom: 16px; color: #667eea;">Recent Visitors (Last 20)</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #eee;">Time</th>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #eee;">Page</th>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #eee;">User</th>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #eee;">IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in recent_visitors %}
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 13px;">
+                        {{ visit.created_at.strftime('%m/%d %H:%M') }}
+                    </td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ visit.page }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                        {% if visit.user_id %}
+                            User {{ visit.user_id }}
+                        {% else %}
+                            Guest
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 13px;">
+                        {{ visit.ip_address }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+        <div class="table-container">
+            <h2>All Users</h2>
+
+            <button class="refresh-btn" onclick="window.location.reload()">
+                Refresh
+            </button>
+
+            <input type="text" class="search-box" id="searchBox"
+                placeholder="Search by username or email..."
+                onkeyup="searchUsers()">
+
+            {% if user_stats|length > 0 %}
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Cards</th>
+                        <th>Exams</th>
+                        <th>Avg Score</th>
+                        <th>Streak</th>
+                        <th>Joined</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in user_stats %}
+                    <tr>
+                        <td>{{ item.user.id }}</td>
+                        <td><strong>{{ item.user.username }}</strong></td>
+                        <td>{{ item.user.email }}</td>
+                        <td>
+                            <span class="badge badge-blue">
+                                📚 {{ item.stats.total_flashcards }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-green">
+                                ✍️ {{ item.stats.total_exams }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.stats.average_score > 0 %}
+                            <span class="badge badge-orange">
+                                {{ item.stats.average_score }}%
+                            </span>
+                            {% else %}
+                            <span style="color:#999;font-size:12px">
+                                No exams
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.stats.study_streak > 0 %}
+                            <span class="badge badge-orange">
+                                🔥 {{ item.stats.study_streak }}d
+                            </span>
+                            {% else %}
+                            <span style="color:#999;font-size:12px">
+                                None
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ item.user.created_at.strftime('%b %d, %Y') }}
+                        </td>
+                        <td>
+                            {% if item.user.id == 1 %}
+                            <span class="badge badge-admin">👑 Admin</span>
+                            {% else %}
+                            <span class="badge badge-green">👤 User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-users">
+                <div class="no-users-icon">👥</div>
+                <p>No users registered yet!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('open');
+            document.getElementById('hamburger').classList.toggle('active');
+        }
+
+        function searchUsers() {
+            const input = document.getElementById('searchBox')
+                .value.toLowerCase();
+            const rows = document.getElementById('usersTable')
+                .getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const username = rows[i].cells[1]
+                    .textContent.toLowerCase();
+                const email = rows[i].cells[2]
+                    .textContent.toLowerCase();
+                rows[i].style.display =
+                    username.includes(input) || email.includes(input)
+                    ? '' : 'none';
+            }
+        }
+    </script>
+
+    <!-- Dark Mode Toggle -->
+<button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
+    <span id="darkModeIcon">🌙</span>
+</button>
+
+<script>
+    // Check user's dark mode preference on page load
+    {% if current_user.dark_mode %}
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeIcon').textContent = '☀️';
+    {% endif %}
+
+    async function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById('darkModeIcon');
+        
+        body.classList.toggle('dark-mode');
+        
+        // Update icon
+        if (body.classList.contains('dark-mode')) {
+            icon.textContent = '☀️';
+        } else {
+            icon.textContent = '🌙';
+        }
+        
+        // Save preference to database
+        try {
+            await fetch('/toggle-dark-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            console.error('Failed to save dark mode preference');
+        }
+    }
+</script>
+
+<!-- Instant Loading Indicator -->
+<script>
+    // Show instant loading feedback when clicking navigation links
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Don't show loading for current page
+                if (this.classList.contains('active')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show instant loading overlay
+                showPageLoader();
+            });
+        });
+        
+        // Hide loader when page loads
+        window.addEventListener('pageshow', function() {
+            hidePageLoader();
+        });
+    });
+    
+    function showPageLoader() {
+        let loader = document.getElementById('pageLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'pageLoader';
+            loader.className = 'page-loader';
+            loader.innerHTML = '<div class="page-loader-spinner"></div>';
+            document.body.appendChild(loader);
+        }
+        loader.classList.add('show');
+    }
+    
+    function hidePageLoader() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.classList.remove('show');
+        }
+    }
+</script>
+</body>
+</html>

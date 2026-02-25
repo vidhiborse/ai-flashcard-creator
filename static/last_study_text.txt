@@ -1,0 +1,242 @@
+A---- 
+ 
+Linear data structure:  Data structure in which data 
+elements are arranged sequentially or linearly,  
+where each element is attached to its previous and 
+next adjacent elements, is called a linear data 
+structure.   
+ 
+ 
+Examples of linear data structures are array, stack, 
+queue, linked list, etc.  Static data structure:  Static data structure has a fixed 
+memory size.  
+ 
+It is easier to access the elements in a static data 
+structure.   
+ 
+An example of this data structure is an array . 
+ 
+Dynamic data structure:  In dynamic data structure, the 
+size is not fixed.  
+ 
+It can be randomly updated during the runtime which 
+may be considered efficient concerning the memory 
+(space) complexity of the code.   
+ 
+ 
+Examples of this data structure are queue, stack, etc.  
+ Non-linear data structure:  Data structures 
+where data elements are not placed 
+sequentially or linearly are called non -linear 
+data structures . 
+ 
+ In a non -linear data structure, we can’t 
+traverse all the elements in a single run 
+only.  
+ 
+Examples of non -linear data structures are 
+trees and graphs.  
+ An array is a linear data structure and it is a collection 
+of items stored at contiguous memory locations.  
+ 
+The idea is to store multiple items of the same type 
+together in one place.  
+ 
+It allows the processing of a large amount of data in a 
+relatively short period.  
+ 
+The first element of the array is indexed by a subscript 
+of 0.  
+ 
+There are different operations possible in an array, like 
+Searching, Sorting, Inserting, Traversing, Reversing, and 
+Deleting . 
+ 
+ 
+ 
+ Real-Life Applications of Array:  
+ 
+An array is frequently used to store data for mathematical computations.  
+It is used in image processing.  
+It is also used in record management.  
+Book pages are also real -life examples of an array.  
+It is used in ordering boxes as well.  Stack is a linear data structure that follows a particular 
+order in which the operations are performed.  
+ 
+ 
+The order is  LIFO(Last in first out) .  
+ 
+Entering and retrieving data is possible from only one 
+end.  
+ 
+The entering and retrieving of data is also called push 
+and pop operation in a stack.  
+ 
+There are different operations possible in a stack like 
+reversing a stack using recursion, Sorting, Deleting the 
+middle element of a stack, etc.   
+ Queue is a linear data structure that follows a particular order 
+in which the operations are performed.  
+ 
+The order is  First In First Out(FIFO)   
+  i.e. the data item stored first will be accessed first. In this, 
+entering   and retrieving data is not done from only one end.  
+ 
+An example of a queue is any queue of consumers for a 
+resource where the consumer that came first is served first . 
+ 
+ Different operations are performed on Queue like Reversing a 
+Queue (with or without using recursion ), 
+           Reversing the first K elements of a Queue, etc.  
+ 
+Few basic operations performed In Queue are enqueue, 
+dequeue, front, rear, etc.  
+ Applications of Queue:   
+Different applications of Queue are as 
+follows:  
+Queue is used for handling website traffic.  
+It helps to maintain the playlist in media 
+players.  
+Queue is used in operating systems for 
+handling interrupts.  
+ A linked list is a linear data structure in which 
+elements are not stored at contiguous memory 
+locations.  
+ 
+The elements in a linked list are linked using 
+pointers as shown in the below image:   
+ 
+Types of linked list:  
+Singly -linked list  
+Doubly linked list  
+Circular linked list  
+Doubly circular linked list  
+ Linked lists are used to display image 
+containers. Users can visit past, current, and 
+next images.  
+They are used to store the history of the 
+visited page.  
+They are used to perform undo operations.  
+ A tree is a non -linear and hierarchal data structure where the 
+elements are arranged in a tree -like structure.  
+ 
+In a tree, the topmost node is called the root node . 
+ 
+ Each node contains some data, and data can be of any type.  
+ 
+It consists of a central node, structural nodes, and sub -nodes 
+which are connected via edges.  
+ 
+Different tree data structures allow quicker and easier access 
+to the data as it is a non -linear data structure . 
+ 
+ A tree has various terminologies like Node, Root, Edge, 
+Height of a tree, Degree of a tree, etc.   
+ A graph is a non -linear data structure that consists of 
+vertices (or nodes) and edges.  
+ 
+It consists of a finite set of vertices and set of edges 
+that connect a pair of nodes.  
+ 
+Graph is used to solve the most challenging and 
+complex programming problems.  
+ 
+It has different terminologies which are Path, Degree, 
+Adjacent vertices, Connected components, etc.  
+ Different applications of Graph are as follows : 
+ 
+Graph is used to represent the flow of 
+computation . 
+ 
+It is used in modeling graphs . 
+ 
+The operating system uses Resource Allocation 
+Graph . 
+ 
+Also used in the World Wide Web where the web 
+pages represent the nodes.  
+ Time complexity is defined in terms of how many 
+times it takes to run a given algorithm, based on 
+the length of the input.  
+ 
+Time complexity is not a measurement of how much 
+time it takes to execute a particular algorithm 
+because such factors as programming language, 
+operating system, and processing power are also 
+considered.  
+ Time complexity is a type of computational 
+complexity that describes the time required to 
+execute an algorithm.  
+ 
+The time complexity of an algorithm is the 
+amount of time it takes for each statement to 
+complete.  
+ 
+As a result, it is highly dependent on the size of 
+the processed data .  
+ 
+It also aids in defining an algorithm's 
+effectiveness and evaluating its performance.  
+ When an algorithm is run on a computer, it 
+necessitates a certain amount of memory 
+space . 
+ 
+ The amount of memory used by a program 
+to execute it is represented by its space 
+complexity.  
+ 
+Because a program requires memory to store 
+input data and temporal values while 
+running, the space complexity is auxiliary 
+and input space  1) Traversing:  Every data structure contains the 
+set of data elements.  
+ 
+the data structure means visiting each element 
+of the data structure in order to perform some 
+specific operation like searching or sorting . 
+ 
+Example:  If we need to calculate the average of 
+the marks obtained by a student in 6 different 
+subject,  
+  we need to traverse the complete array of marks 
+and calculate the total sum, then we will devide  
+that sum by the number of subjects i.e. 6,  
+  in order to find the average.  
+ 2) Insertion:  Insertion can be defined as the 
+process of adding the elements to the data 
+structure at any location . 
+ 
+If the size of data structure is  n then we can 
+only insert  n-1 data elements into it . 
+ 3) Deletion: The process of removing an 
+element from the data structure is called 
+Deletion.  
+ 
+ We can delete an element from the data 
+structure at any random location.  
+ 
+If we try to delete an element from an 
+empty data structure then  underflow  occurs.  
+ 4) Searching:   
+ 
+The process of finding the location of an 
+element within the data structure is called 
+Searching.  
+ 
+There are two algorithms to perform 
+searching, Linear Search and Binary Search.  
+ 5) Sorting:   
+ 
+The process of arranging the data structure in 
+a specific order is known as Sorting.  
+ 
+There are many algorithms that can be used to 
+perform sorting, for example, insertion sort, 
+selection sort, bubble sort, etc.  
+ 6) Merging:   
+ 
+When two lists List A and List B of size M and 
+N respectively, of similar type of elements, 
+clubbed or joined to produce the third list, 
+List C of size (M+N), then this process is 
+called merging  

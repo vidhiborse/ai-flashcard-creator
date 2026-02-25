@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <head>
+    <!-- Preload critical pages -->
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/study">
+    <link rel="prefetch" href="/chat">
+    <link rel="prefetch" href="/profile">
+    
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+    
+    <!-- Preload critical pages -->
+    <link rel="prefetch" href="/dashboard">
+
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+        .page-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: clamp(1.5em, 4vw, 2.2em);
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .exam-setup-box {
+            text-align: center;
+            padding: 30px 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .exam-setup-box .icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+        }
+
+        .exam-setup-box h2 {
+            margin-bottom: 8px;
+            font-size: 1.3em;
+            color: #333;
+        }
+
+        .exam-setup-box p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .exam-container {
+            display: none;
+        }
+
+        .exam-container.show {
+            display: block;
+        }
+
+        .exam-results {
+            display: none;
+        }
+
+        .exam-results.show {
+            display: block;
+        }
+
+        .flashcards-list {
+            display: none;
+        }
+
+        .flashcards-list.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/dashboard" class="navbar-brand">🎓 AI Flashcard Creator</a>
+            <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-menu" id="navMenu">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/study" class="nav-link">Study</a>
+    <a href="/chat" class="nav-link">AI Buddy</a>
+    <a href="/profile" class="nav-link">Profile</a>
+    <a href="/analytics" class="nav-link">Analytics</a>
+    {% if current_user.id == 1 %}
+    <a href="/admin" class="nav-link">Admin</a>
+    {% endif %}
+    <a href="/logout" class="logout-btn">Logout</a>
+</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="page-header">
+                <h1>Study Center</h1>
+                <p>Upload materials, generate flashcards, take practice exams!</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active"
+                    onclick="switchTab('flashcards-tab')">
+                    Flashcards
+                </button>
+                <button class="tab"
+                    onclick="switchTab('exam-tab')">
+                    Practice Exam
+                </button>
+            </div>
+
+            <!-- FLASHCARDS TAB -->
+            <div id="flashcards-tab" class="tab-content active">
+                <div class="upload-section" id="uploadSection"
+                    onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">Upload Your Notes</div>
+                    <h3>Click to Upload or Drag & Drop</h3>
+                    <p>PDF, TXT, MD files supported (Max 16MB)</p>
+                    <input type="file" id="fileInput"
+                        accept=".pdf,.txt,.md" style="display:none">
+                    <div class="file-info" id="fileInfo"></div>
+                </div>
+
+                <div class="controls">
+                    <div class="form-group">
+                        <label for="setName">Set Name (optional)</label>
+                        <input type="text" id="setName"
+                            placeholder="e.g., Biology Chapter 5">
+                    </div>
+                    <div class="form-group">
+                        <label for="numCards">Number of cards</label>
+                        <input type="number" id="numCards"
+                            value="5" min="1" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="difficulty">Difficulty</label>
+                        <select id="difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="generateBtn"
+                    onclick="generateFlashcards()" disabled>
+                    Generate Flashcards
+                </button>
+
+                <div class="error-msg" id="error"></div>
+                <div class="success-msg" id="success"></div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top:15px;color:#666">
+                        Creating your flashcards...
+                    </p>
+                </div>
+
+                <div class="flashcards-list" id="flashcardsContainer"></div>
+
+                <div class="download-section" id="downloadSection">
+                    <h3 style="margin-bottom:12px">
+                        Download your flashcards:
+                    </h3>
+                    <div class="download-buttons">
+                        <button class="btn-outline"
+                            onclick="downloadFlashcards('txt')">
+                            Text File
+                        </button>
+                        <button class="btn-outline"
+                            onclick="downloadFlashcards('json')">
+                            JSON
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRACTICE EXAM TAB -->
+            <div id="exam-tab" class="tab-content">
+                <div id="examSetup">
+                    <div class="exam-setup-box">
+                        <div class="icon">✍️</div>
+                        <h2>Ready for a Practice Exam?</h2>
+                        <p>Test your knowledge with AI-generated MCQs!</p>
+                    </div>
+
+                    <div class="controls-2">
+                        <div class="form-group">
+                            <label for="numQuestions">
+                                Number of questions
+                            </label>
+                            <input type="number" id="numQuestions"
+                                value="10" min="5" max="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="examDifficulty">Difficulty</label>
+                            <select id="examDifficulty">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="generateExam()">
+                        🚀 Start Practice Exam
+                    </button>
+
+                    <div class="error-msg" id="examError"></div>
+                </div>
+
+                <div class="loading" id="examLoading">
+                    <div class="spinner"></div>
+                    <p style="margin-top:15px;color:#666">
+                        Generating your practice exam...
+                    </p>
+                </div>
+
+                <div class="exam-container" id="examContainer">
+                    <div class="exam-header">
+                        <div>
+                            <h3>Practice Exam</h3>
+                            <p id="examProgress">Total Questions: 10</p>
+                        </div>
+                        <div class="timer" id="timer">00:00</div>
+                    </div>
+
+                    <div id="questionsContainer"></div>
+
+                    <button class="btn-primary" onclick="submitExam()">
+                        📊 Submit Exam
+                    </button>
+                </div>
+
+                <div class="exam-results" id="examResults">
+                    <div class="score-card">
+                        <h2 id="scoreDisplay">0/10</h2>
+                        <p id="percentageDisplay">0%</p>
+                        <p style="font-size:0.9em;margin-top:8px">
+                            Time: <span id="timeTaken">0:00</span>
+                        </p>
+                    </div>
+
+                    <h3 style="margin-bottom:15px">Review Your Answers:</h3>
+                    <div id="resultsContainer"></div>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="retakeExam()">
+                            🔄 Retake Exam
+                        </button>
+                        <button class="btn-secondary"
+                            onclick="window.location.href='/dashboard'">
+                            📊 Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let currentMCQs = [];
+        let userAnswers = {};
+        let examStartTime = null;
+        let timerInterval = null;
+
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            const hamburger = document.getElementById('hamburger');
+            menu.classList.toggle('open');
+            hamburger.classList.toggle('active');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => {
+                t.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'flashcards-tab') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener(
+            'change', function(e) {
+                selectedFile = e.target.files[0];
+                if (selectedFile) {
+                    document.getElementById('fileInfo').textContent =
+                        `✅ Selected: ${selectedFile.name}`;
+                    document.getElementById('generateBtn').disabled = false;
+                }
+            }
+        );
+
+        const uploadSection = document.getElementById('uploadSection');
+
+        uploadSection.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                document.getElementById('fileInfo').textContent =
+                    `✅ Selected: ${selectedFile.name}`;
+                document.getElementById('generateBtn').disabled = false;
+            }
+        });
+
+        async function generateFlashcards() {
+            if (!selectedFile) {
+                showMsg('error', 'Please select a file first!');
+                return;
+            }
+
+            hideMessages();
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('generateBtn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('num_cards',
+                document.getElementById('numCards').value);
+            formData.append('difficulty',
+                document.getElementById('difficulty').value);
+            formData.append('set_name',
+                document.getElementById('setName').value || 'Study Set');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST', body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    displayFlashcards(data.flashcards);
+                    showMsg('success',
+                        `✅ Generated ${data.count} flashcards! Saved to dashboard.`);
+                } else {
+                    showMsg('error', data.error || 'Failed to generate');
+                }
+            } catch (error) {
+                showMsg('error', 'Network error. Please try again.');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function displayFlashcards(flashcards) {
+            const container = document.getElementById('flashcardsContainer');
+            container.innerHTML = '';
+            flashcards.forEach((card, i) => {
+                const div = document.createElement('div');
+                div.className = 'flashcard';
+                div.innerHTML = `
+                    <div class="flashcard-number">Card ${i + 1}</div>
+                    <div class="question">Q: ${card.question}</div>
+                    <div class="answer">A: ${card.answer}</div>
+                `;
+                container.appendChild(div);
+            });
+            container.classList.add('show');
+            document.getElementById('downloadSection').classList.add('show');
+        }
+
+        async function generateExam() {
+            if (!selectedFile) {
+                showExamError('Please upload a file in Flashcards tab first!');
+                return;
+            }
+
+            document.getElementById('examError').classList.remove('show');
+            document.getElementById('examSetup').style.display = 'none';
+            document.getElementById('examLoading').classList.add('show');
+
+            const formData = new FormData();
+            formData.append('num_questions',
+                document.getElementById('numQuestions').value);
+            formData.append('difficulty',
+                document.getElementById('examDifficulty').value);
+
+            try {
+                const response = await fetch('/generate-exam', {
+                    method: 'POST', body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentMCQs = data.mcqs;
+                    displayExam(data.mcqs);
+                    startTimer();
+                } else {
+                    showExamError(data.error || 'Failed to generate exam');
+                    document.getElementById('examSetup').style.display = 'block';
+                }
+            } catch (error) {
+                showExamError('Network error. Please try again.');
+                document.getElementById('examSetup').style.display = 'block';
+            } finally {
+                document.getElementById('examLoading').classList.remove('show');
+            }
+        }
+
+        function displayExam(mcqs) {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            userAnswers = {};
+
+            mcqs.forEach((mcq, index) => {
+                const div = document.createElement('div');
+                div.className = 'mcq-question';
+                div.innerHTML = `
+                    <div class="mcq-question-text">
+                        ${index + 1}. ${mcq.question}
+                    </div>
+                    <div class="mcq-options">
+                        ${Object.entries(mcq.options).map(([letter, text]) => `
+                            <label class="mcq-option"
+                                data-question="${index}"
+                                data-answer="${letter}">
+                                <input type="radio" name="q${index}"
+                                    value="${letter}"
+                                    onchange="selectAnswer(${index},'${letter}')">
+                                <span><strong>${letter})</strong> ${text}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('examProgress').textContent =
+                `Total Questions: ${mcqs.length}`;
+            document.getElementById('examContainer').classList.add('show');
+        }
+
+        function selectAnswer(qi, answer) {
+            userAnswers[qi] = answer;
+            document.querySelectorAll(`[data-question="${qi}"]`).forEach(
+                opt => opt.classList.remove('selected')
+            );
+            document.querySelector(
+                `[data-question="${qi}"][data-answer="${answer}"]`
+            ).classList.add('selected');
+
+            const answered = Object.keys(userAnswers).length;
+            document.getElementById('examProgress').textContent =
+                `Answered: ${answered}/${currentMCQs.length}`;
+        }
+
+        function startTimer() {
+            let seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                document.getElementById('timer').textContent =
+                    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const t = Math.floor((Date.now() - examStartTime) / 1000);
+            const m = Math.floor(t / 60);
+            const s = t % 60;
+            return `${m}:${String(s).padStart(2,'0')}`;
+        }
+
+        async function submitExam() {
+            const timeTaken = stopTimer();
+
+            if (Object.keys(userAnswers).length < currentMCQs.length) {
+                if (!confirm('Not all answered. Submit anyway?')) {
+                    startTimer();
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('/submit-exam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        answers: userAnswers,
+                        time_taken: timeTaken
+                    })
+                });
+                const data = await response.json();
+                if (data.success) displayResults(data, timeTaken);
+            } catch (error) {
+                alert('Error submitting. Please try again.');
+                startTimer();
+            }
+        }
+
+        function displayResults(data, timeTaken) {
+            document.getElementById('examContainer').classList.remove('show');
+            document.getElementById('scoreDisplay').textContent =
+                `${data.score}/${data.total}`;
+            document.getElementById('percentageDisplay').textContent =
+                `${data.percentage}%`;
+            document.getElementById('timeTaken').textContent = timeTaken;
+
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            data.results.forEach((result, i) => {
+                const div = document.createElement('div');
+                div.className = `result-item ${result.is_correct ? 'correct' : 'incorrect'}`;
+                div.innerHTML = `
+                    <div class="result-question">
+                        ${i + 1}. ${result.question}
+                    </div>
+                    <div class="result-answer">
+                        <strong>Your Answer:</strong>
+                        <span class="${result.is_correct ? 'correct-mark' : 'incorrect-mark'}">
+                            ${result.user_answer || 'Not answered'}
+                            ${result.is_correct ? '✓' : '✗'}
+                        </span>
+                    </div>
+                    ${!result.is_correct ? `
+                        <div class="result-answer">
+                            <strong>Correct:</strong>
+                            <span class="correct-mark">
+                                ${result.correct_answer}
+                            </span> -
+                            ${result.options[result.correct_answer]}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('examResults').classList.add('show');
+        }
+
+        function retakeExam() {
+            document.getElementById('examResults').classList.remove('show');
+            document.getElementById('examSetup').style.display = 'block';
+            userAnswers = {};
+            currentMCQs = [];
+        }
+
+        function downloadFlashcards(format) {
+            window.location.href = `/download/${format}`;
+        }
+
+        function showMsg(type, message) {
+            const div = document.getElementById(
+                type === 'error' ? 'error' : 'success'
+            );
+            div.textContent = message;
+            div.classList.add('show');
+        }
+
+        function showExamError(message) {
+            const div = document.getElementById('examError');
+            div.textContent = message;
+            div.classList.add('show');
+        }
+
+        function hideMessages() {
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('success').classList.remove('show');
+            document.getElementById('flashcardsContainer').classList.remove('show');
+            document.getElementById('downloadSection').classList.remove('show');
+        }
+    </script>
+
+
+<!-- Dark Mode Toggle -->
+<button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
+    <span id="darkModeIcon">🌙</span>
+</button>
+
+<script>
+    // Check user's dark mode preference on page load
+    {% if current_user.dark_mode %}
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeIcon').textContent = '☀️';
+    {% endif %}
+
+    async function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById('darkModeIcon');
+        
+        body.classList.toggle('dark-mode');
+        
+        // Update icon
+        if (body.classList.contains('dark-mode')) {
+            icon.textContent = '☀️';
+        } else {
+            icon.textContent = '🌙';
+        }
+        
+        // Save preference to database
+        try {
+            await fetch('/toggle-dark-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            console.error('Failed to save dark mode preference');
+        }
+    }
+</script>
+<!-- Instant Loading Indicator -->
+<script>
+    // Show instant loading feedback when clicking navigation links
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Don't show loading for current page
+                if (this.classList.contains('active')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show instant loading overlay
+                showPageLoader();
+            });
+        });
+        
+        // Hide loader when page loads
+        window.addEventListener('pageshow', function() {
+            hidePageLoader();
+        });
+    });
+    
+    function showPageLoader() {
+        let loader = document.getElementById('pageLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'pageLoader';
+            loader.className = 'page-loader';
+            loader.innerHTML = '<div class="page-loader-spinner"></div>';
+            document.body.appendChild(loader);
+        }
+        loader.classList.add('show');
+    }
+    
+    function hidePageLoader() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.classList.remove('show');
+        }
+    }
+</script>
+</body>
+</html>

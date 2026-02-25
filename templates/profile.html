@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <head>
+    <!-- Preload critical pages -->
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/study">
+    <link rel="prefetch" href="/chat">
+    <link rel="prefetch" href="/profile">
+    
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX5FJ3D02L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-GX5FJ3D02L');
+    </script>
+
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - AI Flashcard Creator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dark-mode.css">
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: white;
+            margin: 0 auto 15px;
+        }
+
+        .profile-name {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            color: #888;
+            font-size: 0.95em;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .stat-box .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-box .label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .profile-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .profile-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .danger-zone {
+            border: 2px solid #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .danger-zone h2 {
+            color: #ff6b6b;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .joined-date {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/dashboard" class="navbar-brand">🎓 AI Flashcard Creator</a>
+            <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-menu" id="navMenu">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/study" class="nav-link">Study</a>
+    <a href="/chat" class="nav-link">AI Buddy</a>
+    <a href="/profile" class="nav-link">Profile</a>
+    <a href="/analytics" class="nav-link">Analytics</a>
+    {% if current_user.id == 1 %}
+    <a href="/admin" class="nav-link">Admin</a>
+    {% endif %}
+    <a href="/logout" class="logout-btn">Logout</a>
+</div>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatarHeader">
+                {% if current_user.profile_photo %}
+                    <img src="/static/profile_photos/{{ current_user.profile_photo }}" 
+                         alt="Profile Photo" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                {% else %}
+                    {{ current_user.username[0].upper() }}
+                {% endif %}
+            </div>
+            <h1 class="profile-name">{{ current_user.username }}</h1>
+
+       
+            <p class="profile-email">{{ current_user.email }}</p>
+            <p class="joined-date">
+                Member since {{ current_user.created_at.strftime('%B %d, %Y') }}
+            </p>
+
+            <div class="profile-stats">
+                <div class="stat-box">
+                    <div class="number">{{ stats.total_flashcards }}</div>
+                    <div class="label">Flashcards</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">{{ stats.total_exams }}</div>
+                    <div class="label">Exams Taken</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">{{ stats.average_score }}%</div>
+                    <div class="label">Avg Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">{{ stats.study_streak }}</div>
+                    <div class="label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Profile Photo -->
+        <div class="profile-section">
+            <h2>📷 Profile Photo</h2>
+            
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 0 0 120px;">
+                    <div class="profile-avatar" id="profileAvatarPreview" 
+                         style="width: 120px; height: 120px; margin: 0;">
+                        {% if current_user.profile_photo %}
+                            <img src="/static/profile_photos/{{ current_user.profile_photo }}" 
+                                 alt="Profile Photo" 
+                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            {{ current_user.username[0].upper() }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <div class="error-msg" id="photoError"></div>
+                    <div class="success-msg" id="photoSuccess"></div>
+                    
+                    <form id="photoForm" onsubmit="uploadPhoto(event)">
+                        <input type="file" id="photoInput" name="photo" 
+                               accept="image/*" style="display: none;"
+                               onchange="previewPhoto(event)">
+                        
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="btn-outline" 
+                                    onclick="document.getElementById('photoInput').click()">
+                                Choose Photo
+                            </button>
+                            
+                            <button type="submit" class="btn-primary" 
+                                    id="uploadBtn" style="display: none;">
+                                Upload
+                            </button>
+                            
+                            {% if current_user.profile_photo %}
+                            <button type="button" class="btn-outline btn-danger" 
+                                    onclick="removePhoto()">
+                                Remove Photo
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                    
+                    <p style="color: #888; font-size: 13px; margin-top: 10px;">
+                        Recommended: Square image, at least 300x300px<br>
+                        Allowed: PNG, JPG, GIF (Max 5MB)
+                    </p>
+                </div>
+            </div>
+        </div>
+            
+            <div class="error-msg" id="infoError"></div>
+            <div class="success-msg" id="infoSuccess"></div>
+
+            <form id="infoForm" onsubmit="updateInfo(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username"
+                            value="{{ current_user.username }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email"
+                            value="{{ current_user.email }}" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="profile-section">
+            <h2>Change Password</h2>
+            
+            <div class="error-msg" id="passwordError"></div>
+            <div class="success-msg" id="passwordSuccess"></div>
+
+            <form id="passwordForm" onsubmit="changePassword(event)">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword"
+                        name="currentPassword" required
+                        autocomplete="current-password">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword"
+                            name="newPassword" required minlength="6"
+                            autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword"
+                            name="confirmPassword" required
+                            autocomplete="new-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Change Password
+                </button>
+            </form>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="profile-section danger-zone">
+            <h2>Danger Zone</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Once you delete your account, there is no going back. 
+                All your flashcards, exams, and data will be permanently deleted.
+            </p>
+            
+            <button class="btn-primary btn-danger" onclick="showDeleteModal()">
+                Delete Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>Delete Account?</h3>
+            <p>This action cannot be undone. All your data will be permanently deleted.</p>
+            
+            <div class="error-msg" id="deleteError"></div>
+
+            <form id="deleteForm" onsubmit="deleteAccount(event)">
+                <div class="form-group">
+                    <label for="deletePassword">Enter your password to confirm</label>
+                    <input type="password" id="deletePassword"
+                        name="deletePassword" required
+                        placeholder="Your password">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-outline"
+                        onclick="hideDeleteModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary btn-danger">
+                        Delete Forever
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('open');
+            document.getElementById('hamburger').classList.toggle('active');
+        }
+
+        async function updateInfo(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+
+            hideMessages('info');
+
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_info',
+                        username,
+                        email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('infoSuccess', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('infoError', data.error);
+                }
+            } catch (error) {
+                showError('infoError', 'Network error');
+            }
+        }
+
+        async function changePassword(event) {
+            event.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            hideMessages('password');
+
+            if (newPassword !== confirmPassword) {
+                showError('passwordError', 'New passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'change_password',
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('passwordSuccess', data.message);
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    showError('passwordError', data.error);
+                }
+            } catch (error) {
+                showError('passwordError', 'Network error');
+            }
+        }
+
+        function showDeleteModal() {
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            document.getElementById('deleteForm').reset();
+            hideMessages('delete');
+        }
+
+        async function deleteAccount(event) {
+            event.preventDefault();
+
+            const password = document.getElementById('deletePassword').value;
+
+            hideMessages('delete');
+
+            if (!confirm('Are you ABSOLUTELY sure? This cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'delete_account',
+                        password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Account deleted successfully');
+                    window.location.href = '/login';
+                } else {
+                    showError('deleteError', data.error);
+                }
+            } catch (error) {
+                showError('deleteError', 'Network error');
+            }
+        }
+
+        function showError(id, message) {
+            const elem = document.getElementById(id);
+            elem.textContent = message;
+            elem.classList.add('show');
+        }
+
+        function showSuccess(id, message) {
+            const elem = document.getElementById(id);
+            elem.textContent = message;
+            elem.classList.add('show');
+        }
+
+        function hideMessages(section) {
+            document.getElementById(section + 'Error').classList.remove('show');
+            document.getElementById(section + 'Success').classList.remove('show');
+        }
+    </script>
+
+    <!-- Dark Mode Toggle -->
+<button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
+    <span id="darkModeIcon">🌙</span>
+</button>
+
+<script>
+    // Check user's dark mode preference on page load
+    {% if current_user.dark_mode %}
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeIcon').textContent = '☀️';
+    {% endif %}
+
+    async function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById('darkModeIcon');
+        
+        body.classList.toggle('dark-mode');
+        
+        // Update icon
+        if (body.classList.contains('dark-mode')) {
+            icon.textContent = '☀️';
+        } else {
+            icon.textContent = '🌙';
+        }
+        
+        // Save preference to database
+        try {
+            await fetch('/toggle-dark-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            console.error('Failed to save dark mode preference');
+        }
+    }
+
+
+    function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('profileAvatarPreview');
+                    preview.innerHTML = `<img src="${e.target.result}" 
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                    document.getElementById('uploadBtn').style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function uploadPhoto(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('photoInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('photoError', 'Please select a photo');
+                return;
+            }
+
+            hideMessages('photo');
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('photoSuccess', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('photoError', data.error);
+                }
+            } catch (error) {
+                showError('photoError', 'Network error');
+            }
+        }
+
+        async function removePhoto() {
+            if (!confirm('Remove your profile photo?')) return;
+
+            hideMessages('photo');
+
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'remove_photo' })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('photoSuccess', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('photoError', data.error);
+                }
+            } catch (error) {
+                showError('photoError', 'Network error');
+            }
+        }
+</script>
+
+<!-- Instant Loading Indicator -->
+<script>
+    // Show instant loading feedback when clicking navigation links
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Don't show loading for current page
+                if (this.classList.contains('active')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show instant loading overlay
+                showPageLoader();
+            });
+        });
+        
+        // Hide loader when page loads
+        window.addEventListener('pageshow', function() {
+            hidePageLoader();
+        });
+    });
+    
+    function showPageLoader() {
+        let loader = document.getElementById('pageLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'pageLoader';
+            loader.className = 'page-loader';
+            loader.innerHTML = '<div class="page-loader-spinner"></div>';
+            document.body.appendChild(loader);
+        }
+        loader.classList.add('show');
+    }
+    
+    function hidePageLoader() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.classList.remove('show');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+
+body.dark-mode {
+    background: #1a1a2e;
+    color: #e0e0e0;
+}
+
+.dark-mode .navbar {
+    background: linear-gradient(135deg, #2d3561 0%, #3d2456 100%);
+}
+
+.dark-mode .card,
+.dark-mode .profile-header,
+.dark-mode .profile-section,
+.dark-mode .table-section,
+.dark-mode .users-table-container,
+.dark-mode .admin-header,
+.dark-mode .welcome-section,
+.dark-mode .chart-section,
+.dark-mode .activity-list,
+.dark-mode .sidebar,
+.dark-mode .chat-panel,
+.dark-mode .chat-main,
+.dark-mode .db-container .table-section {
+    background: #16213e;
+    color: #e0e0e0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode .profile-name,
+.dark-mode .welcome-section h1 {
+    color: #e0e0e0;
+}
+
+.dark-mode p,
+.dark-mode .profile-email,
+.dark-mode .welcome-section p {
+    color: #b0b0b0;
+}
+
+.dark-mode input[type="text"],
+.dark-mode input[type="email"],
+.dark-mode input[type="password"],
+.dark-mode input[type="number"],
+.dark-mode select,
+.dark-mode textarea,
+.dark-mode .message-input,
+.dark-mode .msg-input,
+.dark-mode .search-box {
+    background: #0f1419;
+    color: #e0e0e0;
+    border-color: #2d3561;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus,
+.dark-mode textarea:focus {
+    border-color: #667eea;
+}
+
+.dark-mode .flashcard,
+.dark-mode .mcq-question,
+.dark-mode .activity-item,
+.dark-mode .result-item {
+    background: #0f1419;
+    border-left-color: #667eea;
+}
+
+.dark-mode .question,
+.dark-mode .mcq-question-text,
+.dark-mode .activity-name,
+.dark-mode .result-question {
+    color: #e0e0e0;
+}
+
+.dark-mode .answer,
+.dark-mode .activity-meta {
+    color: #b0b0b0;
+}
+
+.dark-mode .upload-section {
+    background: #0f1419;
+    border-color: #667eea;
+}
+
+.dark-mode .upload-section:hover {
+    background: #1a1f2e;
+}
+
+.dark-mode .mcq-option {
+    background: #0f1419;
+    border-color: #2d3561;
+}
+
+.dark-mode .mcq-option:hover,
+.dark-mode .mcq-option.selected {
+    background: #1a1f2e;
+    border-color: #667eea;
+}
+
+.dark-mode .result-item.correct {
+    background: #0d2818;
+    border-left-color: #38ef7d;
+}
+
+.dark-mode .result-item.incorrect {
+    background: #2b1515;
+    border-left-color: #ff6b6b;
+}
+
+.dark-mode table th {
+    background: linear-gradient(135deg, #2d3561, #3d2456);
+}
+
+.dark-mode table td {
+    border-bottom-color: #2d3561;
+    color: #e0e0e0;
+}
+
+.dark-mode tr:hover td {
+    background: #1a1f2e;
+}
+
+.dark-mode .stat-box {
+    background: #0f1419;
+}
+
+.dark-mode .tips-box {
+    background: #0f1419;
+    color: #b0b0b0;
+}
+
+.dark-mode .empty-state,
+.dark-mode .empty-chat {
+    color: #666;
+}
+
+.dark-mode .msg-bubble,
+.dark-mode .message-content {
+    background: #0f1419;
+    color: #e0e0e0;
+}
+
+.dark-mode .typing-dots {
+    background: #0f1419;
+}
+
+.dark-mode .input-bar,
+.dark-mode .input-area {
+    background: #0f1419;
+    border-top-color: #2d3561;
+}
+
+.dark-mode .input-inner,
+.dark-mode .input-wrapper {
+    background: #16213e;
+}
+
+.dark-mode .chat-topbar,
+.dark-mode .chat-header {
+    background: linear-gradient(135deg, #2d3561, #3d2456);
+}
+
+.dark-mode .danger-zone {
+    background: #2b1515;
+    border-color: #ff6b6b;
+}
+
+.dark-mode label {
+    color: #e0e0e0;
+}
+
+/* Dark mode for exam */
+.dark-mode .exam-header {
+    background: linear-gradient(135deg, #2d3561, #3d2456);
+}
+
+/* Dark mode for charts */
+.dark-mode canvas {
+    filter: invert(1) hue-rotate(180deg);
+}
