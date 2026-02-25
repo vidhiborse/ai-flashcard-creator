@@ -16,7 +16,7 @@ from flask_login import (LoginManager, login_user,
                          logout_user, login_required, current_user)
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-from google import genai
+import google.generativeai as genai
 import PyPDF2
 import json
 from datetime import datetime
