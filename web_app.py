@@ -1,5 +1,5 @@
 """
-AI Flashcard Creator - Production Ready with PostgreSQL
+AI Flashcard Creator - Production Ready with PostgreSQL - Vercel Compatible
 """
 
 from PIL import Image
@@ -7,6 +7,7 @@ import secrets
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 import os
+import tempfile
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, flash
 
@@ -17,7 +18,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import PyPDF2
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 
 from models import (db, User, FlashcardSet,
@@ -44,7 +45,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME', 'noreply@flashcar
 
 mail = Mail(app)
 
-# Fix PostgreSQL URL (Neon uses postgresql://, SQLAlchemy needs it too)
+# Fix PostgreSQL URL
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
@@ -56,7 +57,9 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
 }
-app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Vercel compatible paths - use /tmp for writable files
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 db.init_app(app)
@@ -66,8 +69,12 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-os.makedirs('uploads', exist_ok=True)
-os.makedirs('static', exist_ok=True)
+# Create tmp directories (Vercel allows /tmp)
+try:
+    os.makedirs('/tmp/uploads', exist_ok=True)
+    os.makedirs('/tmp/profile_photos', exist_ok=True)
+except:
+    pass
 
 # Track page views
 @app.before_request
@@ -75,7 +82,8 @@ def track_page_view():
     """Track every page view in database"""
     if request.path.startswith('/static') or \
        request.path.startswith('/toggle-') or \
-       request.path == '/favicon.ico':
+       request.path == '/favicon.ico' or \
+       request.path == '/favicon.png':
         return
     
     try:
@@ -100,8 +108,6 @@ def track_page_view():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-from datetime import timedelta
-
 @app.after_request
 def add_header(response):
     """Add caching headers for static files"""
@@ -118,11 +124,11 @@ def add_header(response):
 # HELPER FUNCTIONS
 # ============================================
 def save_profile_photo(photo):
-    """Save and resize profile photo"""
+    """Save and resize profile photo to /tmp"""
     random_hex = secrets.token_hex(8)
     _, file_ext = os.path.splitext(photo.filename)
     photo_filename = random_hex + file_ext
-    photo_path = os.path.join('static', 'profile_photos', photo_filename)
+    photo_path = os.path.join('/tmp/profile_photos', photo_filename)
     
     output_size = (300, 300)
     img = Image.open(photo)
@@ -275,10 +281,13 @@ def parse_mcqs(text):
 @app.route('/static/sw.js')
 def service_worker():
     """Serve service worker with correct MIME type"""
-    response = app.send_static_file('sw.js')
-    response.headers['Content-Type'] = 'application/javascript'
-    response.headers['Service-Worker-Allowed'] = '/'
-    return response
+    try:
+        response = app.send_static_file('sw.js')
+        response.headers['Content-Type'] = 'application/javascript'
+        response.headers['Service-Worker-Allowed'] = '/'
+        return response
+    except:
+        return '', 404
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -480,7 +489,7 @@ def dashboard():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    """User profile page - view and edit account"""
+    """User profile page"""
     if request.method == 'POST':
         if 'photo' in request.files:
             action = 'upload_photo'
@@ -547,10 +556,13 @@ def profile():
                 }), 400
             
             if current_user.profile_photo:
-                old_photo_path = os.path.join('static', 'profile_photos', 
+                old_photo_path = os.path.join('/tmp/profile_photos', 
                                              current_user.profile_photo)
                 if os.path.exists(old_photo_path):
-                    os.remove(old_photo_path)
+                    try:
+                        os.remove(old_photo_path)
+                    except:
+                        pass
             
             photo_filename = save_profile_photo(photo)
             current_user.profile_photo = photo_filename
@@ -564,10 +576,13 @@ def profile():
         
         elif action == 'remove_photo':
             if current_user.profile_photo:
-                photo_path = os.path.join('static', 'profile_photos', 
+                photo_path = os.path.join('/tmp/profile_photos', 
                                          current_user.profile_photo)
                 if os.path.exists(photo_path):
-                    os.remove(photo_path)
+                    try:
+                        os.remove(photo_path)
+                    except:
+                        pass
                 
                 current_user.profile_photo = None
                 db.session.commit()
@@ -616,10 +631,13 @@ def profile():
                 }), 400
             
             if current_user.profile_photo:
-                photo_path = os.path.join('static', 'profile_photos', 
+                photo_path = os.path.join('/tmp/profile_photos', 
                                          current_user.profile_photo)
                 if os.path.exists(photo_path):
-                    os.remove(photo_path)
+                    try:
+                        os.remove(photo_path)
+                    except:
+                        pass
             
             FlashcardSet.query.filter_by(user_id=current_user.id).delete()
             ExamResult.query.filter_by(user_id=current_user.id).delete()
@@ -643,7 +661,6 @@ def profile():
 @login_required
 def analytics():
     """Advanced analytics dashboard"""
-    from datetime import timedelta
     from sqlalchemy import func, extract
     
     today = datetime.utcnow().date()
@@ -807,10 +824,10 @@ def generate():
         db.session.add(session)
         db.session.commit()
 
-        with open('static/last_flashcards.json', 'w') as f:
+        with open('/tmp/last_flashcards.json', 'w') as f:
             json.dump(flashcards, f)
 
-        with open('static/last_study_text.txt', 'w', encoding='utf-8') as f:
+        with open('/tmp/last_study_text.txt', 'w', encoding='utf-8') as f:
             f.write(study_text)
 
         return jsonify({
@@ -820,6 +837,7 @@ def generate():
         })
 
     except Exception as e:
+        print(f"Generate error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/generate-exam', methods=['POST'])
@@ -830,8 +848,7 @@ def generate_exam():
         difficulty = request.form.get('difficulty', 'medium')
 
         try:
-            with open('static/last_study_text.txt', 'r',
-                      encoding='utf-8') as f:
+            with open('/tmp/last_study_text.txt', 'r', encoding='utf-8') as f:
                 study_text = f.read()
         except FileNotFoundError:
             return jsonify({
@@ -853,7 +870,7 @@ def generate_exam():
                 'error': 'Failed to generate exam'
             }), 500
 
-        with open('static/last_exam.json', 'w') as f:
+        with open('/tmp/last_exam.json', 'w') as f:
             json.dump(mcqs, f)
 
         return jsonify({
@@ -863,6 +880,7 @@ def generate_exam():
         })
 
     except Exception as e:
+        print(f"Generate exam error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/submit-exam', methods=['POST'])
@@ -873,7 +891,7 @@ def submit_exam():
         user_answers = data.get('answers', {})
         time_taken = data.get('time_taken', '0:00')
 
-        with open('static/last_exam.json', 'r') as f:
+        with open('/tmp/last_exam.json', 'r') as f:
             mcqs = json.load(f)
 
         total = len(mcqs)
@@ -928,17 +946,18 @@ def submit_exam():
         })
 
     except Exception as e:
+        print(f"Submit exam error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/download/<format>')
 @login_required
 def download(format):
     try:
-        with open('static/last_flashcards.json', 'r') as f:
+        with open('/tmp/last_flashcards.json', 'r') as f:
             flashcards = json.load(f)
 
         if format == 'txt':
-            filename = 'flashcards.txt'
+            filename = '/tmp/flashcards.txt'
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write("="*50 + "\n")
                 f.write("YOUR AI-GENERATED FLASHCARDS\n")
@@ -948,18 +967,19 @@ def download(format):
                     f.write(f"Q: {card['question']}\n")
                     f.write(f"A: {card['answer']}\n")
                     f.write("-"*50 + "\n\n")
-            return send_file(filename, as_attachment=True)
+            return send_file(filename, as_attachment=True, download_name='flashcards.txt')
 
         elif format == 'json':
-            filename = 'flashcards.json'
+            filename = '/tmp/flashcards.json'
             with open(filename, 'w') as f:
                 json.dump(flashcards, f, indent=2)
-            return send_file(filename, as_attachment=True)
+            return send_file(filename, as_attachment=True, download_name='flashcards.json')
 
         else:
             return "Invalid format", 400
 
     except Exception as e:
+        print(f"Download error: {e}")
         return str(e), 500
 
 # ============================================
@@ -999,8 +1019,7 @@ def send_chat_message():
 
         study_context = ""
         try:
-            with open('static/last_study_text.txt', 'r',
-                      encoding='utf-8') as f:
+            with open('/tmp/last_study_text.txt', 'r', encoding='utf-8') as f:
                 study_context = f.read()[:2000]
         except:
             study_context = ""
@@ -1087,7 +1106,7 @@ def export_chat():
             user_id=current_user.id
         ).order_by(ChatMessage.created_at.asc()).all()
 
-        filename = 'chat_history.txt'
+        filename = '/tmp/chat_history.txt'
         with open(filename, 'w', encoding='utf-8') as f:
             f.write("=" * 50 + "\n")
             f.write("AI STUDY BUDDY CHAT HISTORY\n")
@@ -1100,8 +1119,9 @@ def export_chat():
                 f.write(f"{msg.message}\n")
                 f.write("-" * 50 + "\n\n")
 
-        return send_file(filename, as_attachment=True)
+        return send_file(filename, as_attachment=True, download_name='chat_history.txt')
     except Exception as e:
+        print(f"Export chat error: {e}")
         return str(e), 500
 
 @app.route('/admin')
@@ -1113,7 +1133,6 @@ def admin():
         flash('Access denied. Admin only.')
         return redirect(url_for('dashboard'))
     
-    from datetime import timedelta
     from sqlalchemy import func, distinct
     
     all_users = User.query.order_by(User.created_at.desc()).all()
@@ -1168,10 +1187,6 @@ def admin():
                            week_views=week_views,
                            popular_pages=popular_pages,
                            recent_visitors=recent_visitors)
-
-# ============================================
-# API STATS
-# ============================================
 
 @app.route('/api/stats')
 @login_required
