@@ -1283,9 +1283,13 @@ if __name__ == '__main__':
     ║   PostgreSQL + Responsive Design             ║
     ╚══════════════════════════════════════════════╝
 
-    🌐 Open: http://localhost:5000
+    🌐 Server starting...
     🗄️  Database: PostgreSQL (Neon)
     🚀 Ready!
     """)
-
-    app.run(debug=True, port=5000)
+    
+    # Get port from environment (Vercel sets this)
+    port = int(os.environ.get('PORT', 5000))
+    
+    # Set debug=False for production
+    app.run(host='0.0.0.0', port=port, debug=False)
