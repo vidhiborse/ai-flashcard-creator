@@ -30,7 +30,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 database_url = os.getenv("DATABASE_URL")
 secret_key = os.getenv("SECRET_KEY", "fallback-secret-key")
 
-client = genai.Client(api_key=api_key)
+genai.configure(api_key=api_key)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
@@ -188,7 +188,9 @@ A2: [answer here]
 Continue for all {num_cards} questions.
 """
     try:
-        response = client.models.generate_content(
+
+        model = genai.GenerativeModel('gemini-pro')
+response = model.generate_content(
             model='gemini-2.5-flash',
             contents=prompt
         )
