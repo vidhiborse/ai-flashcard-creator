@@ -176,7 +176,7 @@ A2: [answer here]
 Continue for all {num_cards} questions.
 """
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         return parse_flashcards(response.text)
     except Exception as e:
@@ -234,7 +234,7 @@ RULES:
 - Test understanding not memorization
 """
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         return parse_mcqs(response.text)
     except Exception as e:
@@ -1065,7 +1065,7 @@ Guidelines:
             f"AI Study Buddy:"
         )
 
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(full_prompt)
 
         ai_response = response.text
