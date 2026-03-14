@@ -41,7 +41,8 @@
             justify-content: center;
             padding: 20px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;  /* ✅ ONLY HIDE HORIZONTAL SCROLL */
+    overflow-y: auto;     /* ✅ ALLOW VERTICAL SCROLL */
         }
 
         /* Floating background elements */
