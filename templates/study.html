@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <head>
     <!-- Preload critical pages -->
     <link rel="prefetch" href="/dashboard">
     <link rel="prefetch" href="/study">
@@ -10,6 +8,7 @@
     <link rel="prefetch" href="/profile">
     
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -33,17 +32,7 @@
         gtag('js', new Date());
         gtag('config', 'G-GX5FJ3D02L');
     </script>
-    
-    <!-- Preload critical pages -->
-    <link rel="prefetch" href="/dashboard">
 
-    
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - AI Flashcard Creator</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/dark-mode.css">
-    <style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study - AI Flashcard Creator</title>
@@ -113,6 +102,105 @@
         .flashcards-list.show {
             display: block;
         }
+
+        /* FIXED: Light mode text visibility */
+        .form-group label {
+            color: #2d3748 !important;
+            font-weight: 600 !important;
+        }
+
+        .form-group input,
+        .form-group select {
+            color: #1a202c !important;
+        }
+
+        .upload-section h3,
+        .download-section h3,
+        .exam-header h3 {
+            color: #2d3748 !important;
+        }
+
+        .upload-section p {
+            color: #64748b !important;
+        }
+
+        .file-info {
+            color: #10b981 !important;
+            font-weight: 600;
+        }
+
+        .mcq-question-text {
+            color: #1a202c !important;
+            font-weight: 600;
+        }
+
+        .mcq-option span {
+            color: #2d3748 !important;
+        }
+
+        .result-question {
+            color: #1a202c !important;
+        }
+
+        .result-answer {
+            color: #4a5568 !important;
+        }
+
+        /* Dark mode overrides */
+        body.dark-mode .page-header h1 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .page-header p {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .exam-setup-box {
+            background: #1e293b;
+        }
+
+        body.dark-mode .exam-setup-box h2 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .exam-setup-box p {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .form-group label {
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group select {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .upload-section h3,
+        body.dark-mode .download-section h3,
+        body.dark-mode .exam-header h3 {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .upload-section p {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-mode .mcq-question-text {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .mcq-option span {
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .result-question {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .result-answer {
+            color: #cbd5e1 !important;
+        }
     </style>
 </head>
 <body>
@@ -125,16 +213,16 @@
                 <span></span>
             </button>
             <div class="navbar-menu" id="navMenu">
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/study" class="nav-link">Study</a>
-    <a href="/chat" class="nav-link">AI Buddy</a>
-    <a href="/profile" class="nav-link">Profile</a>
-    <a href="/analytics" class="nav-link">Analytics</a>
-    {% if current_user.id == 1 %}
-    <a href="/admin" class="nav-link">Admin</a>
-    {% endif %}
-    <a href="/logout" class="logout-btn">Logout</a>
-</div>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/study" class="nav-link">Study</a>
+                <a href="/chat" class="nav-link">AI Buddy</a>
+                <a href="/profile" class="nav-link">Profile</a>
+                <a href="/analytics" class="nav-link">Analytics</a>
+                {% if current_user.id == 1 %}
+                <a href="/admin" class="nav-link">Admin</a>
+                {% endif %}
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
         </div>
     </nav>
 
@@ -160,7 +248,7 @@
             <div id="flashcards-tab" class="tab-content active">
                 <div class="upload-section" id="uploadSection"
                     onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">Upload Your Notes</div>
+                    <div class="upload-icon">📄 Upload Your Notes</div>
                     <h3>Click to Upload or Drag & Drop</h3>
                     <p>PDF, TXT, MD files supported (Max 16MB)</p>
                     <input type="file" id="fileInput"
@@ -213,11 +301,11 @@
                     <div class="download-buttons">
                         <button class="btn-outline"
                             onclick="downloadFlashcards('txt')">
-                            Text File
+                            📄 Text File
                         </button>
                         <button class="btn-outline"
                             onclick="downloadFlashcards('json')">
-                            JSON
+                            📋 JSON
                         </button>
                     </div>
                 </div>
@@ -512,6 +600,7 @@
         }
 
         function startTimer() {
+            examStartTime = Date.now();
             let seconds = 0;
             timerInterval = setInterval(() => {
                 seconds++;
@@ -631,86 +720,78 @@
         }
     </script>
 
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
+        <span id="darkModeIcon">🌙</span>
+    </button>
 
-<!-- Dark Mode Toggle -->
-<button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">
-    <span id="darkModeIcon">🌙</span>
-</button>
+    <script>
+        {% if current_user.dark_mode %}
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').textContent = '☀️';
+        {% endif %}
 
-<script>
-    // Check user's dark mode preference on page load
-    {% if current_user.dark_mode %}
-        document.body.classList.add('dark-mode');
-        document.getElementById('darkModeIcon').textContent = '☀️';
-    {% endif %}
-
-    async function toggleDarkMode() {
-        const body = document.body;
-        const icon = document.getElementById('darkModeIcon');
-        
-        body.classList.toggle('dark-mode');
-        
-        // Update icon
-        if (body.classList.contains('dark-mode')) {
-            icon.textContent = '☀️';
-        } else {
-            icon.textContent = '🌙';
+        async function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('darkModeIcon');
+            
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                icon.textContent = '☀️';
+            } else {
+                icon.textContent = '🌙';
+            }
+            
+            try {
+                await fetch('/toggle-dark-mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } catch (error) {
+                console.error('Failed to save dark mode preference');
+            }
         }
-        
-        // Save preference to database
-        try {
-            await fetch('/toggle-dark-mode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+    </script>
+
+    <!-- Instant Loading Indicator -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.classList.contains('active')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    showPageLoader();
+                });
             });
-        } catch (error) {
-            console.error('Failed to save dark mode preference');
-        }
-    }
-</script>
-<!-- Instant Loading Indicator -->
-<script>
-    // Show instant loading feedback when clicking navigation links
-    document.addEventListener('DOMContentLoaded', function() {
-        const navLinks = document.querySelectorAll('.nav-link, .navbar-brand');
-        
-        navLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Don't show loading for current page
-                if (this.classList.contains('active')) {
-                    e.preventDefault();
-                    return;
-                }
-                
-                // Show instant loading overlay
-                showPageLoader();
+            
+            window.addEventListener('pageshow', function() {
+                hidePageLoader();
             });
         });
         
-        // Hide loader when page loads
-        window.addEventListener('pageshow', function() {
-            hidePageLoader();
-        });
-    });
-    
-    function showPageLoader() {
-        let loader = document.getElementById('pageLoader');
-        if (!loader) {
-            loader = document.createElement('div');
-            loader.id = 'pageLoader';
-            loader.className = 'page-loader';
-            loader.innerHTML = '<div class="page-loader-spinner"></div>';
-            document.body.appendChild(loader);
+        function showPageLoader() {
+            let loader = document.getElementById('pageLoader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'pageLoader';
+                loader.className = 'page-loader';
+                loader.innerHTML = '<div class="page-loader-spinner"></div>';
+                document.body.appendChild(loader);
+            }
+            loader.classList.add('show');
         }
-        loader.classList.add('show');
-    }
-    
-    function hidePageLoader() {
-        const loader = document.getElementById('pageLoader');
-        if (loader) {
-            loader.classList.remove('show');
+        
+        function hidePageLoader() {
+            const loader = document.getElementById('pageLoader');
+            if (loader) {
+                loader.classList.remove('show');
+            }
         }
-    }
-</script>
+    </script>
 </body>
 </html>
