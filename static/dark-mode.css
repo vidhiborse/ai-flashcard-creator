@@ -8,7 +8,7 @@ body.dark-mode {
 }
 
 .dark-mode .navbar {
-    background: linear-gradient(135deg, #2d3561 0%, #3d2456 100%);
+    background: #232a4d;
 }
 
 .dark-mode .card,
@@ -114,7 +114,8 @@ body.dark-mode {
 }
 
 .dark-mode table th {
-    background: linear-gradient(135deg, #2d3561, #3d2456);
+    background: #232a4d;
+    color: #e0e0e0;
 }
 
 .dark-mode table td {
@@ -163,7 +164,7 @@ body.dark-mode {
 
 .dark-mode .chat-topbar,
 .dark-mode .chat-header {
-    background: linear-gradient(135deg, #2d3561, #3d2456);
+    background: #232a4d;
 }
 
 .dark-mode .danger-zone {
@@ -177,7 +178,7 @@ body.dark-mode {
 
 /* Dark mode for exam */
 .dark-mode .exam-header {
-    background: linear-gradient(135deg, #2d3561, #3d2456);
+    background: #232a4d;
 }
 
 /* Dark mode for charts */
